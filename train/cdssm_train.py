@@ -1,11 +1,13 @@
+import sys
+sys.path.append('./')
 import tensorflow as tf
-from data_reader import InputPipe
-from trainer import SingleboxTrainer
-from cdssm import CDSSMModel
+from utils.data_reader import InputPipe
+from utils.trainer import SingleboxTrainer
+from models.cdssm import CDSSMModel
 import os
 import time
 from datetime import datetime
-from param import FLAGS
+from utils.param import FLAGS
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 #os.environ["CUDA_VISIBLE_DEVICES"] = '0,1'
 def train():

@@ -1,8 +1,9 @@
 import sys
+sys.path.append('./')
 import tensorflow as tf
-from param import FLAGS
+from utils.param import FLAGS
 import math
-from layers import xletter_feature_extractor, mask_maxpool
+from utils.layers import xletter_feature_extractor, mask_maxpool
 if FLAGS.use_mstf_ops:
     import tensorflow.contrib.microsoft as mstf
 

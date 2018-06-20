@@ -8,7 +8,7 @@ tf.app.flags.DEFINE_string('log-dir','log_folder','folder to save log')
 
 #msft cdssm operator
 tf.app.flags.DEFINE_bool('use-mstf-ops',False, 'whether to use mstf operator')
-tf.app.flags.DEFINE_string('xletter-dict','l3g.txt','xletter dictionary name')
+tf.app.flags.DEFINE_string('xletter-dict','utils/l3g.txt','xletter dictionary name')
 tf.app.flags.DEFINE_integer('xletter-win-size',3,'xletter conv win size')
 tf.app.flags.DEFINE_integer('xletter-cnt',49292,'xletter feature num')
 

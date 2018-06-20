@@ -1,9 +1,11 @@
+import sys
+sys.path.append('./')
 import tensorflow as tf
 import time
 from datetime import datetime
 import os
 import numpy as np
-from param import FLAGS
+from utils.param import FLAGS
 from sklearn.metrics import roc_auc_score
 import nltk
 

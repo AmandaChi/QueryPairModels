@@ -17,8 +17,10 @@ from tensorflow.python.ops import clip_ops
 
 from functools import reduce
 from operator import mul
+import sys
+sys.path.append('./')
 
-from param import FLAGS
+from utils.param import FLAGS
 if FLAGS.use_mstf_ops:
     import tensorflow.contrib.microsoft as mstf
 '''

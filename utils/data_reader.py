@@ -1,5 +1,8 @@
 import tensorflow as tf
-from param import FLAGS
+import sys
+sys.path.append('../')
+
+from utils.param import FLAGS
 
 class InputPipe():
     def __init__(self, filenames, batch_size, num_epochs, fields, xletter_fields, append_ori):
