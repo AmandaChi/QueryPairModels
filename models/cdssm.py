@@ -4,7 +4,8 @@ import tensorflow as tf
 from utils.param import FLAGS
 import math
 from utils.layers import xletter_feature_extractor, mask_maxpool
-if FLAGS.use_mstf_ops:
+from utils.xletter import XletterPreprocessor
+if FLAGS.use_mstf_ops == 1:
     import tensorflow.contrib.microsoft as mstf
 
 def parse_dims(dims_str):
@@ -16,8 +17,10 @@ def default_init():
 
 class CDSSMModel():
     def __init__(self):
-        if FLAGS.use_mstf_ops:
+        if FLAGS.use_mstf_ops == 1:
             self.op_dict = mstf.dssm_dict(FLAGS.xletter_dict)
+        elif FLAGS.use_mstf_ops == -1:
+            self.op_dict = XletterPreprocessor(FLAGS.xletter_dict, FLAGS.xletter_win_size)
         else:
             self.op_dict = None
 

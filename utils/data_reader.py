@@ -1,7 +1,7 @@
 import tensorflow as tf
 import sys
-sys.path.append('../')
-
+sys.path.append('.')
+from utils.xletter import XletterPreprocessor
 from utils.param import FLAGS
 
 class InputPipe():
@@ -31,40 +31,6 @@ class InputPipe():
         return res
     def get_next(self):
         return self.iterator.get_next()
-
-class XletterPreprocessor():
-    def __init__(self, xletter_dict, xletter_win_size):
-        self.load_dict(xletter_dict)
-        self.win_size = xletter_win_size
-    def load_dict(self, filename):
-        self.xlt_dict = {}
-        idx = 1
-        for line in open(filename):
-            self.xlt_dict[line.strip()] = idx
-            idx += 1
-    def extract_xletter(self, term, xlt_dict):
-        return [xlt_dict[term[i:i+3]] for i in range(0, len(term)-2) if term[i:i+3] in xlt_dict]
-    def xletter_extractor(self, text):
-        if isinstance(text,str):
-            terms = text.strip().split(" ")
-        else:
-            terms = text.decode('utf-8').strip().split(" ")
-        terms = ['#' + term + '#' for term in terms]
-        terms_fea = [self.extract_xletter(term, self.xlt_dict) for term in terms]
-        band = int(self.win_size / 2)
-        offset = len(self.xlt_dict)
-        res = ""
-        for i in range(0, len(terms_fea)):
-            tmp = ""
-            for idx in range(0, self.win_size):
-                if i - band + idx >= 0 and i - band + idx < len(terms_fea):
-                    if len(tmp) and not tmp[-1] == ",":
-                        tmp += ","
-                    tmp += ",".join([str(int(idx*offset)+ix) for ix in terms_fea[i-band+idx]])
-            if len(tmp):
-                #res += ";" + tmp.strip(",") if len(res) else tmp.strip(",")
-                res += ";" + tmp if len(res) else tmp
-        return res
 
 if __name__ == '__main__':
     inp = InputPipe(FLAGS.input_validation_data_path,2,1,2,"0")

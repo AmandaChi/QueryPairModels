@@ -7,7 +7,7 @@ tf.app.flags.DEFINE_string('output-model-path','finalmodel','path to save model'
 tf.app.flags.DEFINE_string('log-dir','log_folder','folder to save log')
 
 #msft cdssm operator
-tf.app.flags.DEFINE_bool('use-mstf-ops',False, 'whether to use mstf operator')
+tf.app.flags.DEFINE_integer('use-mstf-ops',-1, 'whether to use mstf operator: 1: use, 0: not use and preprocess xletter in reader, -1: faster than 0')
 tf.app.flags.DEFINE_string('xletter-dict','utils/l3g.txt','xletter dictionary name')
 tf.app.flags.DEFINE_integer('xletter-win-size',3,'xletter conv win size')
 tf.app.flags.DEFINE_integer('xletter-cnt',49292,'xletter feature num')

@@ -19,9 +19,9 @@ from functools import reduce
 from operator import mul
 import sys
 sys.path.append('./')
-
 from utils.param import FLAGS
-if FLAGS.use_mstf_ops:
+
+if FLAGS.use_mstf_ops == 1:
     import tensorflow.contrib.microsoft as mstf
 '''
 This file is from https://github.com/NLPLearn/QANet.git
@@ -658,7 +658,7 @@ def total_params():
 #Newly added
 def xletter_feature_extractor(text,model_prefix, op_dict=None,xletter_cnt=None,win_size=None,dim_xletter_emb=None):
     with tf.variable_scope("xletter_layer", reuse=tf.AUTO_REUSE):
-        if FLAGS.use_mstf_ops:
+        if FLAGS.use_mstf_ops == 1:
             xletter_emb = tf.get_variable(name='xletter_emb_' + model_prefix, shape = [xletter_cnt * win_size, dim_xletter_emb])
             indices, ids, values, offsets = mstf.dssm_xletter(input=text, win_size=win_size, dict_handle=op_dict)
             offsets_to_dense = tf.segment_sum(tf.ones_like(offsets), offsets)
@@ -675,7 +675,7 @@ def xletter_feature_extractor(text,model_prefix, op_dict=None,xletter_cnt=None,w
             text_vecs = tf.reshape(text_vecs,[-1,tf.reduce_max(indices) + 1,dim_xletter_emb])
             step_mask = ~tf.equal(tf.reduce_sum(text_vecs,axis=2),0)
             sequence_length = tf.cast(tf.count_nonzero(step_mask,axis=1),tf.int32)
-        else:
+        elif FLAGS.use_mstf_ops == 0:
             query_split = tf.string_split(text,';')
             term_split = tf.string_split(query_split.values,',')
             xletter_tensor_indices = tf.transpose(tf.stack([tf.gather(query_split.indices[:,0],term_split.indices[:,0]),tf.gather(query_split.indices[:,1],term_split.indices[:,0])]))
@@ -686,6 +686,17 @@ def xletter_feature_extractor(text,model_prefix, op_dict=None,xletter_cnt=None,w
             xletter_vecs = tf.nn.embedding_lookup_sparse(xletter_emb, xletter_tensor, None, combiner='sum')
             xletter_vecs = tf.where(~text_mask, xletter_vecs, tf.zeros_like(xletter_vecs))
             text_vecs = tf.reshape(xletter_vecs, shape=tf.stack([-1,tf.reduce_max(query_split.indices[:,1])+1,dim_xletter_emb]))
+            step_mask = ~tf.equal(tf.reduce_sum(text_vecs,axis=2),0)
+            sequence_length = tf.cast(tf.count_nonzero(step_mask,axis=1),tf.int32)
+        else:
+            indices, values, dense_shape = tf.py_func(op_dict.batch_xletter_extractor,[text],[tf.int64,tf.int32,tf.int64])
+            xletter_tensor = tf.SparseTensor(indices = indices, values = values, dense_shape = dense_shape)
+            xletter_emb = tf.get_variable(name='xletter_emb_' + model_prefix, shape = [xletter_cnt * win_size, dim_xletter_emb])
+            xletter_tensor_reshape = tf.sparse_reshape(xletter_tensor,[-1])
+            xletter_tensor,text_mask = tf.sparse_fill_empty_rows(xletter_tensor_reshape,0)
+            xletter_vecs = tf.nn.embedding_lookup_sparse(xletter_emb, xletter_tensor, None, combiner='sum')
+            xletter_vecs = tf.where(~text_mask, xletter_vecs, tf.zeros_like(xletter_vecs))
+            text_vecs = tf.reshape(xletter_vecs, shape=tf.stack([-1,dense_shape[1],dim_xletter_emb]))
             step_mask = ~tf.equal(tf.reduce_sum(text_vecs,axis=2),0)
             sequence_length = tf.cast(tf.count_nonzero(step_mask,axis=1),tf.int32)
     return text_vecs, step_mask, sequence_length
