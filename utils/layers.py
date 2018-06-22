@@ -712,12 +712,17 @@ def lookup_emb(text_tensor, text_padding, embedding_weight, dim_output):
     sequence_length = tf.cast(tf.count_nonzero(step_mask,axis=1),tf.int32)
     return text_vecs, step_mask, sequence_length
 
-def term_emb_extract(text,w2v_vocab,w2v_emb,dim_w2v_emb):
+def term_emb_extract(text,w2v_vocab,w2v_emb,dim_w2v_emb,add_terminator=False):
     text_tensor = tf.string_split(text)
-    dense_shape = tf.stack([text_tensor.dense_shape[0],text_tensor.dense_shape[1]])
+    if add_terminator:
+        dense_shape = tf.stack([text_tensor.dense_shape[0],text_tensor.dense_shape[1] + 1])
+    else:
+        dense_shape = tf.stack([text_tensor.dense_shape[0],text_tensor.dense_shape[1]])
     text_tensor_expand = tf.SparseTensor(indices = text_tensor.indices, values = w2v_vocab.lookup(text_tensor.values), dense_shape=dense_shape)
     text_padding = text_tensor_expand.dense_shape[1]
     text_vecs, step_mask, sequence_length = lookup_emb(text_tensor_expand, text_padding, w2v_emb, dim_w2v_emb)
+    if add_terminator:
+        return text_vecs, step_mask, sequence_length,tf.sparse_tensor_to_dense(text_tensor_expand)
     return text_vecs, step_mask, sequence_length
 
 def char_emb_extract(text, c2v_vocab, c2v_emb, dim_c2v_emb, dim_hidden):

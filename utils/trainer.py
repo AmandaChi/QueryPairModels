@@ -251,6 +251,7 @@ class SingleboxTrainer:
                     print("auc_evaluation done.")
                     break
             auc_score = roc_auc_score(label_list, score_list)
+            improved_mark = ""
             if FLAGS.metrics_early_stop == 'auc':
                 self.metrics_update(auc_score, step)
                 improved_mark = "?" if self.improved() else ""
@@ -274,6 +275,7 @@ class SingleboxTrainer:
                     print("bleu evaluation done.")
                     break
             bleu_score_avg = np.mean(bleu_score)
+            improved_mark = ""
             if FLAGS.metrics_early_stop == 'bleu':
                 self.metrics_update(bleu_score_avg, step)
                 improved_mark = "?" if self.improved() else ""
