@@ -70,7 +70,6 @@ class SingleboxTrainer:
             self.train_op = opt.apply_gradients(grads)
 
         #Evaluation
-
         if FLAGS.mode == 'train' and FLAGS.auc_evaluation or FLAGS.mode == 'eval':
             tower_pred = []
             for i in range(0, len(self.devices)):
@@ -83,15 +82,25 @@ class SingleboxTrainer:
             self.score_list = self.merge_eval_res(tower_pred)  
         
         #Inference
+        #if FLAGS.mode == 'train' and FLAGS.bleu_evaluation or FLAGS.mode == 'predict':
+        #    tower_infer = []
+        #    for i in range(0, len(self.devices)):
+        #        with tf.device(self.devices[i]):
+        #            bleu_test_batch = infer_inp.get_next()
+        #            rewrite, res_len, score = self.tower_inference(bleu_test_batch)
+        #            tower_infer.append([bleu_test_batch,rewrite, res_len, score])
+        #    self.infer_list = self.merge_bleu_res(tower_infer)
+        
+        #Inference --new
         if FLAGS.mode == 'train' and FLAGS.bleu_evaluation or FLAGS.mode == 'predict':
             tower_infer = []
             for i in range(0, len(self.devices)):
                 with tf.device(self.devices[i]):
-                    bleu_test_batch = infer_inp.get_next()
-                    rewrite, res_len, score = self.tower_inference(bleu_test_batch)
-                    tower_infer.append([bleu_test_batch,rewrite, res_len, score])
-            self.infer_list = self.merge_bleu_res(tower_infer)
-        
+                    infer_batch = infer_inp.get_next()
+                    infer_res = self.tower_inference(infer_batch)
+                    tower_infer.append([infer_batch, infer_res])
+            self.infer_list = self.merge_infer_res(tower_infer)
+
         #search
         if FLAGS.mode == 'search':
             tower_search_res = []
@@ -147,19 +156,33 @@ class SingleboxTrainer:
         merge_score = tf.concat(score, axis = 0)
         return merge_batch, merge_score
     
-    def merge_bleu_res(self, tower_infer):
-        test_batch, rewrite, seq_length, score = zip(*tower_infer)
-        #merge_batch = tf.concat(test_batch, axis = 0)
+
+    def merge_infer_res(self, tower_infer):
+        infer_batch, infer_res = zip(*tower_infer)
         merge_batch = []
-        for i in zip(*test_batch):
+        merge_res = []
+        for i in zip(*infer_batch):
             if not isinstance(i[0],tf.Tensor):
                 merge_batch.append(tf.concat([j[0] for j in i], axis = 0))
             else:
                 merge_batch.append(tf.concat(i, axis=0))
-        merge_rewrite = tf.concat(rewrite, axis = 0)
-        merge_seq_length = tf.concat(seq_length, axis = 0)
-        merge_score = tf.concat(score, axis = 0)
-        return merge_batch, merge_rewrite, merge_seq_length, merge_score
+        for i in zip(*infer_res):
+            merge_res.append(tf.concat(i,axis=0))
+        return merge_batch, merge_res
+
+    #def merge_bleu_res(self, tower_infer):
+    #    test_batch, rewrite, seq_length, score = zip(*tower_infer)
+    #    #merge_batch = tf.concat(test_batch, axis = 0)
+    #    merge_batch = []
+    #    for i in zip(*test_batch):
+    #        if not isinstance(i[0],tf.Tensor):
+    #            merge_batch.append(tf.concat([j[0] for j in i], axis = 0))
+    #        else:
+    #            merge_batch.append(tf.concat(i, axis=0))
+    #    merge_rewrite = tf.concat(rewrite, axis = 0)
+    #    merge_seq_length = tf.concat(seq_length, axis = 0)
+    #    merge_score = tf.concat(score, axis = 0)
+    #    return merge_batch, merge_rewrite, merge_seq_length, merge_score
 
     def merge_search_res(self, tower_search):
         search_batch, search_res = zip(*tower_search)
@@ -263,7 +286,7 @@ class SingleboxTrainer:
             noscore = 0
             while True:
                 try:
-                    input_batch, rewrite, resLen, score = sess.run(self.bleu_eval_ops())
+                    input_batch, [rewrite,resLen,score] = sess.run(self.bleu_eval_ops())
                     for i in range(len(rewrite)):
                         rwt = " ".join([rewrite[i][j].decode('utf-8') for j in range(0, resLen[i]-1)])
                         try:
@@ -308,7 +331,7 @@ class SingleboxTrainer:
             xf_count = len(self.infer_inp.xf)
             while True:
                 try:
-                    input_batch, rewrite, resLen, score = sess.run(self.bleu_eval_ops())
+                    input_batch, [rewrite, resLen, score] = sess.run(self.bleu_eval_ops())
                     for i in range(len(resLen)):
                         output_str = ""
                         xf_ori = -xf_count
@@ -318,7 +341,13 @@ class SingleboxTrainer:
                                 xf_ori += 1
                             else:
                                 output_str += input_batch[j][i].decode('utf-8') + "\t"
-                        output_str += " ".join([rewrite[i][j].decode('utf-8') for j in range(0, resLen[i] - 1)]) + "\t"
+                        if not FLAGS.beam_width:
+                            output_str += " ".join([rewrite[i][j].decode('utf-8') for j in range(0, resLen[i] - 1)]) + "\t"
+                        else:
+                            res = []
+                            for k in range(0, FLAGS.beam_width):
+                                res.append(" ".join(filter(lambda x: not x=='</s>',[rewrite[i][j][k].decode('utf-8') for j in range(0, resLen[i][k] - 1)])))
+                            output_str += ",".join(res) + "\t"
                         output_str += str(score[i])
                         outputter.write(output_str + "\n")
                 except tf.errors.OutOfRangeError:

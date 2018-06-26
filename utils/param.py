@@ -4,8 +4,8 @@ import tensorflow as tf
 tf.app.flags.DEFINE_string('input-training-data-path','../../S2S/Train_Data','training data path')
 tf.app.flags.DEFINE_string('input-validation-data-path','../Eval_Data/label_data.txt', 'validation path')
 #tf.app.flags.DEFINE_string('input-validation-data-path','../Eval_Data/', 'validation path')
-#tf.app.flags.DEFINE_string('input-previous-model-path','initial_model','initial model path')
-tf.app.flags.DEFINE_string('input-previous-model-path','finalmodel','initial model path')
+tf.app.flags.DEFINE_string('input-previous-model-path','initial_model','initial model path')
+#tf.app.flags.DEFINE_string('input-previous-model-path','finalmodel','initial model path')
 tf.app.flags.DEFINE_string('output-model-path','finalmodel','path to save model')
 tf.app.flags.DEFINE_string('log-dir','log_folder','folder to save log')
 
@@ -44,7 +44,6 @@ tf.app.flags.DEFINE_string('result-filename','predict.txt','result file name')
 tf.app.flags.DEFINE_string('semantic-model-dims','64', 'semantic model dims, split by ,')
 tf.app.flags.DEFINE_integer('dim-xletter-emb', 288, 'xletter embedding dimension')
 tf.app.flags.DEFINE_float('softmax-gamma',10.0,'softmax parameters')
-
 
 #Seq2Seq Model: From xletter to term
 tf.app.flags.DEFINE_string('decoder-vocab-file','vocab100000.txt','term vocabulary file')
