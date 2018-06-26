@@ -73,7 +73,8 @@ class CDSSMModel():
         weight = batch_size
         tf.summary.scalar('softmax_losses',loss)
         return [loss], weight
-
+    def get_optimizer(self):
+        return [tf.train.GradientDescentOptimizer(FLAGS.learning_rate)]
     def calc_score(self, inference_res):
         query_vec, doc_vec = inference_res
         score = tf.reduce_sum(tf.multiply(query_vec, doc_vec), axis = 1)

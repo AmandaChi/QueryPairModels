@@ -157,7 +157,8 @@ class Seq2Seq():
         loss = tf.reduce_sum(tf.where(target_weights, crossent, tf.zeros_like(crossent))) #/ tf.cast(tf.shape(target_output)[0],tf.float32)
         #return tf.reduce_sum(loss), tf.reduce_sum(tf.cast(tf.reduce_sum(sequence_length),tf.float32))
         return [loss], tf.cast(tf.reduce_sum(sequence_length),tf.float32)
-
+    def get_optimizer(self):
+        return [tf.train.GradientDescentOptimizer(FLAGS.learning_rate)]
     def calc_score(self, inference_res):
         logits, target_output, sequence_length = inference_res
         if FLAGS.beam_width:

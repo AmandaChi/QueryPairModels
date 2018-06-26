@@ -43,8 +43,8 @@ class SingleboxTrainer:
         self.total_weight = [tf.Variable(0., trainable=False) for i in range(0, FLAGS.loss_cnt)]
         self.total_loss = [tf.Variable(0., trainable=False) for i in range(0, FLAGS.loss_cnt)]
         # Optimizer
-        opt = self.create_optimizer()
-        
+        #opt = self.create_optimizer()
+        opts = self.model.get_optimizer()
         # training
         tower_grads = []
         tower_loss = [[] for i in range(0,FLAGS.loss_cnt)]
@@ -61,7 +61,10 @@ class SingleboxTrainer:
                         loss,weight = self.tower_loss(scope, batch_input)
                         tf.get_variable_scope().reuse_variables()
                         summaries = tf.get_collection(tf.GraphKeys.SUMMARIES, scope)
-                        grads = opt.compute_gradients(loss[0])
+                        grads = []
+                        for opt in opts:
+                            grads.extend(opt.compute_gradients(loss[0]))
+                        #print(grads)
                         tower_grads.append(grads)
                         for j in range(0,len(loss)):
                             tower_loss[j].append((loss[j],weight))
@@ -231,8 +234,6 @@ class SingleboxTrainer:
             devices.append('/cpu:0')
         print("available devices", devices)
         return devices
-    def create_optimizer(self):
-        return tf.train.GradientDescentOptimizer(FLAGS.learning_rate)
     def train_ops(self):
         return [self.train_op, self.avg_loss, self.total_weight, self.inc_step]
     def auc_eval_ops(self):

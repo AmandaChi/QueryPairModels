@@ -31,7 +31,7 @@ tf.app.flags.DEFINE_integer('log-frequency', 1000, 'log frequency during trainin
 tf.app.flags.DEFINE_integer('checkpoint-frequency', 100000, 'evaluation frequency during training procedure')
 tf.app.flags.DEFINE_float('learning-rate',0.001, 'learning rate')
 tf.app.flags.DEFINE_bool('auc-evaluation',True,'whether to do auc evaluation')
-tf.app.flags.DEFINE_bool('bleu-evaluation', True, 'whether to do bleu evaluation')
+tf.app.flags.DEFINE_bool('bleu-evaluation', False, 'whether to do bleu evaluation')
 tf.app.flags.DEFINE_integer('negative-sample',4,'negative sample count')
 tf.app.flags.DEFINE_string('metrics-early-stop','auc','metrics to control early stop')
 tf.app.flags.DEFINE_integer('loss-cnt',1,'total loss count to update')
