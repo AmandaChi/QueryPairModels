@@ -105,14 +105,14 @@ class SingleboxTrainer:
             self.infer_list = self.merge_infer_res(tower_infer)
 
         #search
-        if FLAGS.mode == 'search':
-            tower_search_res = []
-            for i in range(0, len(self.devices)):
-                with tf.device(self.devices[i]):
-                    search_batch = infer_inp.get_next()
-                    candidates = self.tower_search(search_batch)
-                    tower_search_res.append([search_batch, candidates])
-            self.search_list = self.merge_search_res(tower_search_res)
+        #if FLAGS.mode == 'search':
+        #    tower_search_res = []
+        #    for i in range(0, len(self.devices)):
+        #        with tf.device(self.devices[i]):
+        #            search_batch = infer_inp.get_next()
+        #            candidates = self.tower_search(search_batch)
+        #            tower_search_res.append([search_batch, candidates])
+        #    self.search_list = self.merge_search_res(tower_search_res)
 
 
     def update_loss(self, tower_loss, idx):
@@ -134,10 +134,6 @@ class SingleboxTrainer:
         score = self.model.calc_score(inference_output)
         return rewrite, seq_length, score
 
-    def tower_search(self, batch_input):
-        search_idx = self.model.search(batch_input)
-        search_res = self.model.lookup_infer(search_idx)
-        return search_res
 
     def tower_loss(self, scope, batch_input):
         inference_output = self.model.inference(batch_input,tf.contrib.learn.ModeKeys.TRAIN)
@@ -236,9 +232,9 @@ class SingleboxTrainer:
         return devices
     def train_ops(self):
         return [self.train_op, self.avg_loss, self.total_weight, self.inc_step]
-    def auc_eval_ops(self):
+    def scoring_ops(self):
         return self.score_list
-    def bleu_eval_ops(self):
+    def inference_ops(self):
         return self.infer_list#[self.rewrite, self.inference_res_bleu]
     def search_ops(self):
         return self.search_list
@@ -267,7 +263,7 @@ class SingleboxTrainer:
             score_list, label_list = [],[]
             while True:
                 try:
-                    input_batch, score = sess.run(self.auc_eval_ops())
+                    input_batch, score = sess.run(self.scoring_ops())
                     #print(input_batch)
                     label_list.extend([int(i) for i in input_batch[2]])
                     score_list.extend(score)
@@ -312,7 +308,7 @@ class SingleboxTrainer:
             xf_count = len(self.score_inp.xf)
             while True:
                 try:
-                    input_batch,score = sess.run(self.auc_eval_ops())
+                    input_batch,score = sess.run(self.scoring_ops())
                     for i in range(len(score)):
                         output_str = ""
                         xf_ori = -xf_count
@@ -332,7 +328,9 @@ class SingleboxTrainer:
             xf_count = len(self.infer_inp.xf)
             while True:
                 try:
-                    input_batch, [rewrite, resLen, score] = sess.run(self.bleu_eval_ops())
+                    input_batch, [rewrite, resLen, score] = sess.run(self.inference_ops())
+                    #print(rewrite)
+                    #print(resLen)
                     for i in range(len(resLen)):
                         output_str = ""
                         xf_ori = -xf_count
@@ -342,14 +340,18 @@ class SingleboxTrainer:
                                 xf_ori += 1
                             else:
                                 output_str += input_batch[j][i].decode('utf-8') + "\t"
-                        if not FLAGS.beam_width:
+                        if FLAGS.beam_width < 0: # tree based retrieval
+                            output_str += ",".join([rewrite[i][j].decode('utf-8') for j in range(0, resLen[i] - 1)]) + "\t"
+                            output_str += ",".join([str(score[i][j]) for j in range(0, resLen[i] - 1)]) + "\t"
+
+                        elif not FLAGS.beam_width:
                             output_str += " ".join([rewrite[i][j].decode('utf-8') for j in range(0, resLen[i] - 1)]) + "\t"
+                            output_str += str(score[i])
                         else:
                             res = []
                             for k in range(0, FLAGS.beam_width):
                                 res.append(" ".join(filter(lambda x: not x=='</s>',[rewrite[i][j][k].decode('utf-8') for j in range(0, resLen[i][k] - 1)])))
                             output_str += ",".join(res) + "\t"
-                        output_str += str(score[i])
                         outputter.write(output_str + "\n")
                 except tf.errors.OutOfRangeError:
                     print("inference done.")

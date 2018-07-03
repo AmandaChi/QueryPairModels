@@ -125,7 +125,7 @@ class Seq2Seq():
                     helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(decoder_emb, start_tokens, end_token)
                     #my_decoder = tf.contrib.seq2seq.BasicDecoder(decoder_cell, helper, initial_state, output_layer = output_layer)
                     my_decoder = tf.contrib.seq2seq.BasicDecoder(cell, helper, initial_state, output_layer = output_layer)
-                outputs, c_state, final_sequence_length = tf.contrib.seq2seq.dynamic_decode(my_decoder,maximum_iterations=None,impute_finished=False,scope=decoder_scope)
+                outputs, c_state, final_sequence_length = tf.contrib.seq2seq.dynamic_decode(my_decoder,maximum_iterations=10,impute_finished=False,scope=decoder_scope)
                 target_id, sequence_length = None, None
                 if beam_width > 0:
                     logits = tf.no_op()

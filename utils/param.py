@@ -1,9 +1,11 @@
 import tensorflow as tf
 #Interface
 #tf.app.flags.DEFINE_string('input-training-data-path','../../ACDSSM/Train_Data/','training data path')
-tf.app.flags.DEFINE_string('input-training-data-path','../../S2S/Train_Data','training data path')
+#tf.app.flags.DEFINE_string('input-training-data-path','../../S2S/Train_Data','training data path')
+tf.app.flags.DEFINE_string('input-training-data-path','../TreeRetrieve_data\QK', 'training data path')
 tf.app.flags.DEFINE_string('input-validation-data-path','../Eval_Data/label_data.txt', 'validation path')
 #tf.app.flags.DEFINE_string('input-validation-data-path','../Eval_Data/', 'validation path')
+#tf.app.flags.DEFINE_string('input-validation-data-path','../Eval_Data/ql.txt', 'validation path')
 tf.app.flags.DEFINE_string('input-previous-model-path','initial_model','initial model path')
 #tf.app.flags.DEFINE_string('input-previous-model-path','finalmodel','initial model path')
 tf.app.flags.DEFINE_string('output-model-path','finalmodel','path to save model')
@@ -47,7 +49,7 @@ tf.app.flags.DEFINE_float('softmax-gamma',10.0,'softmax parameters')
 
 #Seq2Seq Model: From xletter to term
 tf.app.flags.DEFINE_string('decoder-vocab-file','vocab100000.txt','term vocabulary file')
-tf.app.flags.DEFINE_integer('beam-width',0, 'beam search width')
+tf.app.flags.DEFINE_integer('beam-width',-1, 'beam search width')
 tf.app.flags.DEFINE_float('length-penalty-weight', 0.0, 'length penalty weight')
 tf.app.flags.DEFINE_integer('dim-decoder', 64, 'decoder dimension')
 tf.app.flags.DEFINE_integer('dim-decoder-emb', 128, 'decoder embedding dimension')
@@ -55,4 +57,10 @@ tf.app.flags.DEFINE_integer('decoder-vocab-size', 100003, 'decoder vocab size')
 tf.app.flags.DEFINE_integer('dim-encoder', 64, 'encoder dimension')
 tf.app.flags.DEFINE_integer('dim-attention', 64, 'attention dim')
 
+#Tree based retrieval
+tf.app.flags.DEFINE_bool('leaf-content-emb',True, 'Whether to use leaf content as embedding material')
+tf.app.flags.DEFINE_integer('top-k',10,'top K result to return')
+tf.app.flags.DEFINE_string('tree-index-file', 'Keyword10k.tsv','tree index file name')
+tf.app.flags.DEFINE_integer('layer-negative-sample', 4, 'layer neg sample count')
+tf.app.flags.DEFINE_float('layer-weight',0.01,'layer weight for loss')
 FLAGS = tf.app.flags.FLAGS
