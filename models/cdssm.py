@@ -55,7 +55,7 @@ class CDSSMModel():
                 output_vec = tf.matmul(input_vec, weight)
                 output_vec = tf.nn.tanh(output_vec)
                 input_vec = output_vec
-        normalized_vec = tf.nn.l2_normalize(output_vec, dim = 1)
+        normalized_vec = tf.nn.l2_normalize(output_vec, dim = 1,name='text_vec')
         return normalized_vec
 
     def calc_loss(self, inference_res):

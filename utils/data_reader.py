@@ -18,6 +18,7 @@ class InputPipe():
         ds = ds.repeat(num_epochs)
         ds = ds.shuffle(buffer_size=FLAGS.buffer_size)
         ds_batch = ds.batch(batch_size)
+        ds_batch = ds_batch.prefetch(buffer_size=1*FLAGS.batch_size)
         self.iterator = ds_batch.make_initializable_iterator()
     def parse_line(self, line):
         columns = tf.decode_csv(line, [[""] for i in range(0,self.fields)],field_delim="\t",use_quote_delim=False)

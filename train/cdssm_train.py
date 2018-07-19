@@ -1,6 +1,8 @@
 import sys
+import numpy as np
 sys.path.append('./')
 import tensorflow as tf
+from tensorflow.python.framework import graph_util
 from utils.data_reader import InputPipe
 from utils.trainer import SingleboxTrainer
 from models.cdssm import CDSSMModel
@@ -96,7 +98,36 @@ def predict():
         trainer.predict(sess, predict_mode, outputter)
     outputter.close()
 
-
+def build_predict_graph():
+    model = CDSSMModel()
+    query = tf.placeholder(tf.string,shape=[None],name="query")
+    qvec,_ = model.inference([query],tf.contrib.learn.ModeKeys.INFER)
+    print(qvec)
+    scope = tf.get_variable_scope()
+    scope.reuse_variables()
+    saver = tf.train.Saver()
+    with tf.Session(config = tf.ConfigProto(gpu_options = tf.GPUOptions(allow_growth = True))) as sess:
+        sess.run(tf.local_variables_initializer())
+        sess.run(tf.tables_initializer())
+        sess.run(tf.global_variables_initializer())
+        ckpt = tf.train.get_checkpoint_state(FLAGS.input_previous_model_path)
+        if ckpt and ckpt.model_checkpoint_path:
+            saver.restore(sess, ckpt.model_checkpoint_path)
+            print("Load model from ", ckpt.model_checkpoint_path)
+        else:
+            print("No initial model found.")
+        for variable in tf.global_variables():
+            variable = tf.cast(variable, tf.float16)
+            print(variable)
+        print("predictions: ", sess.run(qvec, feed_dict={query:["tensorflow","google"]}))
+        graph_def = tf.get_default_graph().as_graph_def()
+        for op in tf.get_default_graph().get_operations(): #????????
+            print (op.name, op.values())
+        output_graph_def = graph_util.convert_variables_to_constants(sess, graph_def, ["text_vec"])
+        
+        with tf.gfile.GFile(FLAGS.output_model_path + "/predict_qvec.pb", "wb") as f:
+            f.write(output_graph_def.SerializeToString())
+        print("%d ops in the final graph." % len(output_graph_def.node))
 
 if __name__ == '__main__':
     #Create folders
@@ -108,5 +139,8 @@ if __name__ == '__main__':
         train()
     elif FLAGS.mode == 'predict' or FLAGS.mode == 'eval':
         predict()
+    elif FLAGS.mode == 'build_graph':
+        build_predict_graph()
+
     
 

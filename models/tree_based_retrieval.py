@@ -13,7 +13,8 @@ def parse_dims(dims_str):
     return dims
 def count_idx(filename):
     count = 0
-    for line in open(filename,encoding='utf-8'):
+    #for line in open(filename,encoding='utf-8'):
+    for line in tf.gfile.GFile(filename):
         count += 1
     return count
 def default_init():

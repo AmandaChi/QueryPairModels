@@ -17,7 +17,7 @@ def train():
         global_step = tf.train.get_or_create_global_step()
         inc_step = tf.assign_add(global_step,1)
         #Training setting
-        train_input_pipe = InputPipe([FLAGS.input_training_data_path + "/" + i for i in tf.gfile.ListDirectory(FLAGS.input_training_data_path)], FLAGS.batch_size, FLAGS.num_epochs, 2, "",True)
+        train_input_pipe = InputPipe([FLAGS.input_training_data_path + "/" + i for i in tf.gfile.ListDirectory(FLAGS.input_training_data_path)], FLAGS.batch_size, FLAGS.num_epochs, 5, "",True)
         #auc_eval_pipe = InputPipe(FLAGS.input_validation_data_path + "/label_data.txt", FLAGS.eval_batch_size,1,3,"0,1",False) if FLAGS.auc_evaluation else None
         auc_eval_pipe = InputPipe(FLAGS.input_validation_data_path, FLAGS.eval_batch_size, 1,3,"",True) if FLAGS.auc_evaluation else None
         #bleu_eval_pipe = InputPipe(FLAGS.input_validation_data_path + "/bleu_data.txt", FLAGS.eval_batch_size,1,2,"0",False) if FLAGS.bleu_evaluation else None

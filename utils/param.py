@@ -6,7 +6,7 @@ tf.app.flags.DEFINE_string('input-training-data-path','../TreeRetrieve_data\QK',
 tf.app.flags.DEFINE_string('input-validation-data-path','../Eval_Data/label_data.txt', 'validation path')
 #tf.app.flags.DEFINE_string('input-validation-data-path','../Eval_Data/', 'validation path')
 #tf.app.flags.DEFINE_string('input-validation-data-path','../Eval_Data/ql.txt', 'validation path')
-tf.app.flags.DEFINE_string('input-previous-model-path','initial_model','initial model path')
+tf.app.flags.DEFINE_string('input-previous-model-path','../initial_models/initial_model','initial model path')
 #tf.app.flags.DEFINE_string('input-previous-model-path','finalmodel','initial model path')
 tf.app.flags.DEFINE_string('output-model-path','finalmodel','path to save model')
 tf.app.flags.DEFINE_string('log-dir','log_folder','folder to save log')
